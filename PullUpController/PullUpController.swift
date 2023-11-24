@@ -277,7 +277,6 @@ open class PullUpController: UIViewController {
             bottomConstraint?.priority = .defaultLow
         }
 
-        topConstraint = view.topAnchor.constraint(greaterThanOrEqualTo: parentView.topAnchor)
         leftConstraint = view.leftAnchor.constraint(equalTo: parentView.leftAnchor)
         widthConstraint = view.widthAnchor.constraint(equalToConstant: pullUpControllerPreferredSize.width)
         heightConstraint = view.heightAnchor.constraint(equalToConstant: pullUpControllerPreferredSize.height)
