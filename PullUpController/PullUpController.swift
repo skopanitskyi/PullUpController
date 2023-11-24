@@ -239,7 +239,7 @@ open class PullUpController: UIViewController {
                             size: view.frame.size)
         
         setupPanGestureRecognizer()
-        setupConstraints()
+        setupConstraints(shouldRefreshConstraints: shouldRefreshConstraints)
         
         if shouldRefreshConstraints {
             refreshConstraints(newSize: superview.frame.size,
@@ -265,10 +265,17 @@ open class PullUpController: UIViewController {
         }
     }
     
-    private func setupConstraints() {
+    private func setupConstraints(shouldRefreshConstraints: Bool) {
         guard
             let parentView = parent?.view
             else { return }
+        
+        if shouldRefreshConstraints {
+            topConstraint = view.topAnchor.constraint(equalTo: parentView.topAnchor)
+        } else {
+            topConstraint = view.topAnchor.constraint(greaterThanOrEqualTo: parentView.topAnchor)
+            bottomConstraint?.priority = .defaultLow
+        }
 
         topConstraint = view.topAnchor.constraint(greaterThanOrEqualTo: parentView.topAnchor)
         leftConstraint = view.leftAnchor.constraint(equalTo: parentView.leftAnchor)
@@ -276,7 +283,6 @@ open class PullUpController: UIViewController {
         heightConstraint = view.heightAnchor.constraint(equalToConstant: pullUpControllerPreferredSize.height)
         heightConstraint?.priority = .defaultLow
         bottomConstraint = view.bottomAnchor.constraint(equalTo: parentView.bottomAnchor)
-        bottomConstraint?.priority = .defaultLow
         
         let constraintsToActivate = [topConstraint,
                                      leftConstraint,
