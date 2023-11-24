@@ -230,7 +230,7 @@ open class PullUpController: UIViewController {
     
     // MARK: - Setup
     
-    fileprivate func setup(superview: UIView, initialStickyPointOffset: CGFloat) {
+    fileprivate func setup(superview: UIView, initialStickyPointOffset: CGFloat, shouldRefreshConstraints: Bool = true) {
         self.initialStickyPointOffset = initialStickyPointOffset
         view.translatesAutoresizingMaskIntoConstraints = false
         superview.addSubview(view)
@@ -240,8 +240,11 @@ open class PullUpController: UIViewController {
         
         setupPanGestureRecognizer()
         setupConstraints()
-        refreshConstraints(newSize: superview.frame.size,
-                           customTopOffset: superview.frame.height - initialStickyPointOffset)
+        
+        if shouldRefreshConstraints {
+            refreshConstraints(newSize: superview.frame.size,
+                               customTopOffset: superview.frame.height - initialStickyPointOffset)
+        }
     }
     
     fileprivate func addInternalScrollViewPanGesture() {
@@ -266,13 +269,14 @@ open class PullUpController: UIViewController {
         guard
             let parentView = parent?.view
             else { return }
-        
-        topConstraint = view.topAnchor.constraint(equalTo: parentView.topAnchor)
+
+        topConstraint = view.topAnchor.constraint(greaterThanOrEqualTo: parentView.topAnchor)
         leftConstraint = view.leftAnchor.constraint(equalTo: parentView.leftAnchor)
         widthConstraint = view.widthAnchor.constraint(equalToConstant: pullUpControllerPreferredSize.width)
         heightConstraint = view.heightAnchor.constraint(equalToConstant: pullUpControllerPreferredSize.height)
         heightConstraint?.priority = .defaultLow
-        bottomConstraint = parentView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        bottomConstraint = view.bottomAnchor.constraint(equalTo: parentView.bottomAnchor)
+        bottomConstraint?.priority = .defaultLow
         
         let constraintsToActivate = [topConstraint,
                                      leftConstraint,
@@ -480,16 +484,21 @@ extension UIViewController {
     open func addPullUpController(_ pullUpController: PullUpController,
                                   initialStickyPointOffset: CGFloat,
                                   animated: Bool,
+                                  shouldUpdateConstraints: Bool = true,
                                   completion: ((Bool) -> Void)? = nil) {
         assert(!(self is UITableViewController), "It's not possible to attach a PullUpController to a UITableViewController. Check this issue for more information: https://github.com/MarioIannotta/PullUpController/issues/14")
         addChild(pullUpController)
-        pullUpController.setup(superview: view, initialStickyPointOffset: initialStickyPointOffset)
+
+        pullUpController.setup(superview: view, initialStickyPointOffset: initialStickyPointOffset, shouldRefreshConstraints: shouldUpdateConstraints)
+        pullUpController.view.layoutIfNeeded()
+        pullUpController.view.transform = .init(translationX: .zero, y: pullUpController.view.frame.height)
+        
         if animated {
             pullUpController.pullUpControllerAnimate(
                 action: .add,
                 withDuration: 0.3,
-                animations: { [weak self] in
-                    self?.view.layoutIfNeeded()
+                animations: {
+                    pullUpController.view.transform = .identity
                 },
                 completion: { didComplete in
                     pullUpController.didMove(toParent: self)
@@ -509,8 +518,8 @@ extension UIViewController {
      - parameter animated: Pass true to animate the removing; otherwise, pass false.
      - parameter completion: Optional completion handler to be called after the PullUpController is removed.
      */
-    open func removePullUpController(_ pullUpController: PullUpController, 
-                                     animated: Bool, 
+    open func removePullUpController(_ pullUpController: PullUpController,
+                                     animated: Bool,
                                      completion: ((Bool) -> Void)? = nil) {
         pullUpController.hide()
         if animated {
