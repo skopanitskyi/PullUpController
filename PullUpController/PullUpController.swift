@@ -270,10 +270,13 @@ open class PullUpController: UIViewController {
             let parentView = parent?.view
             else { return }
         
+        
         if shouldRefreshConstraints {
             topConstraint = view.topAnchor.constraint(equalTo: parentView.topAnchor)
+            bottomConstraint = parentView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         } else {
             topConstraint = view.topAnchor.constraint(greaterThanOrEqualTo: parentView.topAnchor)
+            bottomConstraint = view.bottomAnchor.constraint(equalTo: parentView.bottomAnchor)
             bottomConstraint?.priority = .defaultLow
         }
 
@@ -281,7 +284,6 @@ open class PullUpController: UIViewController {
         widthConstraint = view.widthAnchor.constraint(equalToConstant: pullUpControllerPreferredSize.width)
         heightConstraint = view.heightAnchor.constraint(equalToConstant: pullUpControllerPreferredSize.height)
         heightConstraint?.priority = .defaultLow
-        bottomConstraint = view.bottomAnchor.constraint(equalTo: parentView.bottomAnchor)
         
         let constraintsToActivate = [topConstraint,
                                      leftConstraint,
